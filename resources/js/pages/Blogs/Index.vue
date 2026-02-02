@@ -2,12 +2,6 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { route } from 'ziggy-js';
-import { marked } from 'marked'; 
-import { DOMPurify } from 'dompurify'; // Note: importing strictly for sanitization if needed, but here we just want plain text. 
-
-// Actually, marked doesn't have a direct 'strip' method.
-// A common way to strip markdown is to render it to HTML and then strip tags, or use a regex-based stripper.
-// Let's use a simple regex-based stripper for the preview to be lightweight, or just strip HTML tags after marked.parse.
 
 const stripMarkdown = (markdown: string) => {
    // Primitive strip: Remove bold, italic, links [text](url), headings #
