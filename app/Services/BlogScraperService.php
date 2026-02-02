@@ -33,7 +33,7 @@ class BlogScraperService
 
             // Generate content
             $postDetail = GenerateBlog::make()->chat([
-                new UserMessage($blogUrl)
+                new UserMessage("Blog URL: $blogUrl")
             ]);
 
             $content = $postDetail->getContent();

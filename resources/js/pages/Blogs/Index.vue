@@ -2,6 +2,25 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { route } from 'ziggy-js';
+import { marked } from 'marked'; 
+import { DOMPurify } from 'dompurify'; // Note: importing strictly for sanitization if needed, but here we just want plain text. 
+
+// Actually, marked doesn't have a direct 'strip' method.
+// A common way to strip markdown is to render it to HTML and then strip tags, or use a regex-based stripper.
+// Let's use a simple regex-based stripper for the preview to be lightweight, or just strip HTML tags after marked.parse.
+
+const stripMarkdown = (markdown: string) => {
+   // Primitive strip: Remove bold, italic, links [text](url), headings #
+   return markdown
+     .replace(/!\[.*?\]\(.*?\)/g, '') // Remove images
+     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1') // Replace links with text
+     .replace(/(\*\*|__)(.*?)\1/g, '$2') // Remove bold
+     .replace(/(\*|_)(.*?)\1/g, '$2') // Remove italic
+     .replace(/^#+\s+/gm, '') // Remove headers
+     .replace(/`{3}[\s\S]*?`{3}/g, '') // Remove code blocks
+     .replace(/`(.+?)`/g, '$1') // Remove inline code
+     .replace(/\n/g, ' '); // Replace newlines with spaces for clamp
+};
 
 defineProps<{
     blogs: Array<{
@@ -138,7 +157,7 @@ const downloadImage = async (imageUrl: string) => {
                         </h3>
 
                         <p class="text-gray-500 line-clamp-3 mb-6 flex-1 text-sm leading-relaxed">
-                            {{ blog.content }}
+                            {{ stripMarkdown(blog.content) }}
                         </p>
 
                         <!-- Actions -->
@@ -152,22 +171,22 @@ const downloadImage = async (imageUrl: string) => {
                                 <button 
                                     v-if="blog.image"
                                     @click="downloadImage(blog.image)"
-                                    class="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200 tooltip-trigger"
+                                    class="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200 tooltip-trigger cursor-pointer"
                                     title="Download Image"
                                 >
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                                 </button>
                                 <button 
                                     @click="copyToClipboard(blog.url)"
-                                    class="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200"
+                                    class="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200 cursor-pointer"
                                     title="Copy Link"
                                 >
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
                                 </button>
                                 <button 
                                     @click="copyToClipboard(blog.content)"
-                                    class="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200"
-                                    title="Copy Content"
+                                    class="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200 cursor-pointer"
+                                    title="Copy Markdown Content"
                                 >
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
                                 </button>

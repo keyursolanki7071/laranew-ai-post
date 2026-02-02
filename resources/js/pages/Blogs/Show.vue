@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import { route } from 'ziggy-js';
+import { marked } from 'marked';
+import DOMPurify from 'dompurify';
+import { computed } from 'vue';
 
-defineProps<{
+const props = defineProps<{
     blog: {
         id: number;
         url: string;
@@ -12,6 +15,11 @@ defineProps<{
         created_at: string;
     };
 }>();
+
+const renderedContent = computed(() => {
+    const rawHtml = marked.parse(props.blog.content, { breaks: true });
+    return DOMPurify.sanitize(rawHtml as string);
+});
 
 const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -102,14 +110,14 @@ const downloadImage = async (imageUrl: string) => {
                              <button 
                                 v-if="blog.image"
                                 @click="downloadImage(blog.image)"
-                                class="p-2 text-gray-500 hover:text-indigo-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-gray-200 hover:shadow-sm"
+                                class="p-2 text-gray-500 hover:text-indigo-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-gray-200 hover:shadow-sm cursor-pointer"
                                 title="Download Image"
                             >
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                             </button>
                             <button 
                                 @click="copyToClipboard(blog.url)"
-                                class="p-2 text-gray-500 hover:text-indigo-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-gray-200 hover:shadow-sm"
+                                class="p-2 text-gray-500 hover:text-indigo-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-gray-200 hover:shadow-sm cursor-pointer"
                                 title="Copy Source Link"
                             >
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
@@ -118,9 +126,10 @@ const downloadImage = async (imageUrl: string) => {
                     </div>
 
                     <!-- Content -->
-                    <div class="prose prose-lg prose-indigo max-w-none prose-headings:font-bold prose-headings:text-gray-900 prose-p:text-gray-600 prose-p:leading-relaxed">
-                        {{ blog.content }}
-                    </div>
+                    <div 
+                        class="prose prose-lg prose-indigo max-w-none prose-headings:font-bold prose-headings:text-gray-900 prose-p:text-gray-600 prose-p:leading-relaxed"
+                        v-html="renderedContent"
+                    ></div>
                 </div>
 
                 <!-- Footer Actions -->
@@ -130,10 +139,10 @@ const downloadImage = async (imageUrl: string) => {
                     </span>
                     <button 
                         @click="copyToClipboard(blog.content)"
-                        class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-xl shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all transform hover:-translate-y-0.5"
+                        class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-xl shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all transform hover:-translate-y-0.5 cursor-pointer"
                     >
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
-                        Copy Post Content
+                        Copy Post Content (Markdown)
                     </button>
                 </div>
             </div>
